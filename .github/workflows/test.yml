@@ -1,8 +1,6 @@
 name: ML Pipeline CI
 
 on:
-  # push:
-  #   branches: [ main, master  ]
   pull_request:
     branches: [ main, master ]
 
@@ -10,32 +8,50 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0          # ← main との差分用に履歴を全部取る
     
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest great_expectations pandas scikit-learn flake8 black mypy pytest-cov
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        
+        pip install -r requirements.txt  # 既存ファイルがあれば
+        pip install pytest great_expectations pandas scikit-learn \
+                    flake8 black mypy pytest-cov
+    
+    
     - name: Lint with flake8
-      run: |
-        flake8 day5/演習3 --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 day5/演習3 --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
-        
+      run: flake8 day5/演習3 --count --select=E9,F63,F7,F82 --show-source --statistics
     - name: Format check with black
-      run: |
-        black --check day5/演習3
-        
+      run: black --check day5/演習3
     - name: Run data tests
-      run: |
-        pytest day5/演習3/tests/test_data.py -v
-        
+      run: pytest day5/演習3/tests/test_data.py -v
     - name: Run model tests
+      run: pytest day5/演習3/tests/test_model.py -v
+    
+    
+    - name: Extract baseline model from main
+      id: baseline
       run: |
-        pytest day5/演習3/tests/test_model.py -v
+        git fetch origin main --depth=1
+        # main にモデルがあれば取り出す
+        if git cat-file -e origin/main:models/titanic_model.pkl; then
+          git show origin/main:models/titanic_model.pkl > /tmp/baseline_model.pkl
+          echo "baseline=true" >> $GITHUB_OUTPUT
+        else
+          echo "baseline=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Run regression tests (accuracy / latency)
+      if: always()        
+      env:
+        BASELINE_MODEL: /tmp/baseline_model.pkl
+        HAS_BASELINE: ${{ steps.baseline.outputs.baseline }}
+      run: |
+        pytest day5/演習3/tests/test_model_regression.py -v
