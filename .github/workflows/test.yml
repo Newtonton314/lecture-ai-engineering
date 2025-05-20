@@ -34,6 +34,12 @@ jobs:
         pip install pytest great_expectations pandas scikit-learn \
                     flake8 black mypy pytest-cov
     
+    - name: Ensure package init files
+      run: |
+        # 空の __init__.py を作成してパッケージとして認識させる
+        touch day5/__init__.py
+        touch "day5/演習3/__init__.py"
+        touch "day5/演習3/src/__init__.py"
     
     - name: Lint with flake8
       run: flake8 day5/演習3 --count --select=E9,F63,F7,F82 --show-source --statistics
