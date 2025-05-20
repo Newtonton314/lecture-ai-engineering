@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/marusawakenji/ai-enginering_day5/lecture-ai-engineering/day5/%E6%BC%94%E7%BF%921/mlruns/0/ee1a91216f8946b7a80cd05d626fa40a/artifacts
+end_time: 1747661894850
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: ee1a91216f8946b7a80cd05d626fa40a
+run_name: handsome-goose-133
+run_uuid: ee1a91216f8946b7a80cd05d626fa40a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747661892740
+status: 3
+tags: []
+user_id: marusawakenji
