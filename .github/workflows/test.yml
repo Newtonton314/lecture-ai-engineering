@@ -48,14 +48,19 @@ jobs:
     - name: Extract baseline model from main
       id: baseline
       run: |
-        git fetch origin master --depth=1
-        # main にモデルがあれば取り出す
-        if git cat-file -e origin/main:models/titanic_model.pkl; then
-          git show origin/main:models/titanic_model.pkl > /tmp/baseline_model.pkl
-          echo "baseline=true" >> $GITHUB_OUTPUT
-        else
-          echo "baseline=false" >> $GITHUB_OUTPUT
-        fi
+        # どちらのデフォルトブランチ名でも動くよう main / master を両方フェッチ
+        git fetch origin --depth=1
+
+        baseline_found=false
+        for branch in main master; do
+          if git cat-file -e "origin/${branch}:models/titanic_model.pkl" 2>/dev/null; then
+            git show "origin/${branch}:models/titanic_model.pkl" > /tmp/baseline_model.pkl
+            baseline_found=true
+            break
+          fi
+        done
+
+        echo "baseline=${baseline_found}" >> $GITHUB_OUTPUT
     
     - name: Run regression tests (accuracy / latency)
       if: always()        
